@@ -1,9 +1,128 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    "version": "0.1.0",
+    "version": "2.0.0",
     "command": "make",
-    "isShellCommand": true,
     "args": [],
-    "showOutput": "always"
+    "options" : {
+        "env": {
+        }
+    },
+    "inputs": [
+        { // CMD_ProjNameInLinux
+        "id": "CMD_ProjNameInLinux",
+        "type": "command",
+        "command": "shellCommand.execute",
+        "args": {
+            //"cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/m2h",
+            //"command": "echo ${ProjName} & ls -1 *.m2h|sed 's/\\.m2h$//'",
+            //"command": "echo ${workspaceFolder}",
+            "command": "ls -1t *.m2h|sed 's/\\.m2h$//'",
+            //"command": "ls -1 m2h/*.m2h|sed 's/\\(.*\\)\/\\(.*\\)\\.\\(.*\\)$/\\2/'"
+            //"command": "ls -1 ${workspaceFolder}/m2h/*.m2h",
+            //"command": "powershell ls ${workspaceFolder}/m2h/*.m2h"
+            //"command": " mode.com|findstr /I COM"
+            //"command": "[System.IO.Ports.SerialPort]::getportnames()"
+        },
+        },
+        { // CMD_ProjNameInWindows
+            "id": "CMD_ProjNameInWindows",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "powershell \"Get-ChildItem \"${workspaceFolder}\\boards\" | sort LastWriteTime -Descending | Foreach-Object {$_.BaseName}\""
+                //"command": "powershell ls ${workspaceFolder}/m2h/*.m2h"
+                //"command": " mode.com|findstr /I COM"
+                //"command": "[System.IO.Ports.SerialPort]::getportnames()"
+            },
+        },
+    ],
+    "tasks": [
+        { // build board
+            "label": "build board",
+            "type": "shell",
+            "group": "build",
+            "command": "make",
+            "args": [
+                "BOARD=${input:CMD_ProjNameInLinux}",
+                "clean",
+                "all",
+        ],
+            "windows": {
+                "command": "${workspaceFolder}/make.exe",
+                "args": [
+                    "BOARD=${input:CMD_ProjNameInWindows}",
+                    "clean",
+                    "all",
+                ],
+            },
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}/src"
+                ]
+            }
+        },
+        { // build
+            "label": "build",
+            "type": "shell",
+            "group": "build",
+            "command": "make",
+            "args": [
+                "clean",
+                "all",
+        ],
+            "windows": {
+                "command": "${workspaceFolder}/make.exe",
+                "args": [
+                    "clean",
+                    "all",
+                ],
+            },
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": {
+                "base": "$gcc",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}/src"
+                ]
+            }
+        },
+        {
+            "label": "make",
+            "type": "shell",
+            "command": "make",
+            "problemMatcher": [],
+            "group": {
+                "_id": "build",
+                "isDefault": false
+            }
+        },
+        { // prog
+            "label": "prog",
+            "type": "shell",
+            "group": "test",
+            "command": "make",
+            "args": [
+                "Compiler=avrgcc",
+                "prog",
+                "BOARD=${input:CMD_ProjNameInLinux}",
+            ],
+            "windows": {
+                "command": "${workspaceFolder}/make.exe",
+                "args": [
+                    "prog",
+                    "BOARD=${input:CMD_ProjNameInWindows}",
+                ],
+            },
+            "problemMatcher": []
+        }
+    ]
 }

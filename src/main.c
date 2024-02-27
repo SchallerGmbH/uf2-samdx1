@@ -64,7 +64,7 @@
  * GCLK Generator 0 source (GCLK_GEN_0) - 48MHz DFLL in Clock Recovery mode
  * (DFLL48M)
  *
- * Crytal mode:
+ * Crystal mode:
  * GCLK Generator 0 source (GCLK_GEN_0) - 48MHz DFLL in closed loop mode
  * GCLK Generator 1 source (GCLK_GEN_1) - 32 kHz external cyrstal (XOSC32K)
  * DFLL48M Refence clock (GCLK_DFLL48M_REF) - GCLK_GEN_1 (i.e., XOSC32K)

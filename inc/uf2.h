@@ -28,8 +28,8 @@
 #endif
 
 #ifndef USB_PID
-#define USB_VID 0x03EB // Atmel
-#define USB_PID 0x2402 // Generic HID device
+#define USB_VID 0x03EB /* Atmel */
+#define USB_PID 0x2402 /* Generic HID device */
 #endif
 
 #ifndef INDEX_URL
@@ -42,23 +42,41 @@
 #define NUM_FAT_BLOCKS 16000
 
 // Logging to help debugging
+#ifndef USE_LOGS
 #define USE_LOGS 0
+#endif
 // Check various conditions; best leave on
 #define USE_ASSERT 0 // 188 bytes
 // Enable reading flash via FAT files; otherwise drive will appear empty
-#define USE_FAT 1 // 272 bytes
+#ifndef USE_FAT
+#define USE_FAT 1 /* 272 bytes */
+#else
+//#warning USE_FAT
+#endif
 // Enable index.htm file on the drive
-#define USE_INDEX_HTM 1 // 132 bytes
+#ifndef USE_INDEX_HTM
+#define USE_INDEX_HTM 1 /* 132 bytes */
+#else
+//#warning USE_INDEX_HTM
+#endif
 // Enable USB CDC (Communication Device Class; i.e., USB serial) monitor for Arduino style flashing
 #define USE_CDC 1 // 1264 bytes (plus terminal, see below)
 // Support the UART (real serial port, not USB)
+#ifndef USE_UART
 #define USE_UART 0
+#else
+//#warning USE_UART
+#endif
 // Support Human Interface Device (HID) - serial, flashing and debug
 #define USE_HID 1 // 788 bytes
 // Expose HID via WebUSB
 #define USE_WEBUSB 1
 // Doesn't yet disable code, just enumeration
+#ifndef USE_MSC
 #define USE_MSC 1
+#else
+//#warning USE_MSC
+#endif
 
 #ifdef BOARD_SCREEN
 #define USE_SCREEN 1
@@ -76,7 +94,11 @@
 #define USE_HID_SERIAL 0   // just an example, not really needed; 36 bytes
 #define USE_HID_EXT 1      // extended HID commands (read/write mem); 60 bytes
 #define USE_HID_HANDOVER 1 // allow HID application->bootloader seamless transition; 56 bytes
-#define USE_MSC_HANDOVER 1 // ditto for MSC; 348 bytes
+#ifdef USE_MSC
+#define USE_MSC_HANDOVER 1 /* ditto for MSC; 348 bytes */
+#else
+#define USE_MSC_HANDOVER 0
+#endif
 #define USE_MSC_CHECKS 0   // check validity of MSC commands; 460 bytes
 #define USE_CDC_TERMINAL 0 // enable ASCII mode on CDC loop (not used by BOSSA); 228 bytes
 #define USE_DBG_MSC 0      // output debug info about MSC

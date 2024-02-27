@@ -24,6 +24,7 @@ CFLAGS = $(COMMON_FLAGS) \
 --param max-inline-insns-single=500 \
 -fno-strict-aliasing -fdata-sections -ffunction-sections \
 -D__$(CHIP_VARIANT)__ \
+$(CUSTOM_CFLAGS) \
 $(WFLAGS)
 
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
@@ -35,9 +36,15 @@ SELF_LINKER_SCRIPT=scripts/samd21j18a_self.ld
 endif
 
 ifeq ($(CHIP_FAMILY), samd51)
+ifeq ($(CHIP_VARIANT), SAMD51J20A)
+LINKER_SCRIPT=scripts/samd51j20a.ld
+BOOTLOADER_SIZE=16384
+SELF_LINKER_SCRIPT=scripts/samd51j20a_self.ld
+else
 LINKER_SCRIPT=scripts/samd51j19a.ld
 BOOTLOADER_SIZE=16384
 SELF_LINKER_SCRIPT=scripts/samd51j19a_self.ld
+endif
 endif
 
 LDFLAGS= $(COMMON_FLAGS) \
@@ -65,6 +72,22 @@ else
 INCLUDES += -Ilib/samd51/include/
 endif
 endif
+endif
+
+avrprog  :=
+ifeq ("$(OS)","Windows_NT")
+ifeq ("$(AS7PATH)","")
+ifeq ("$(ProgramW6432)","")
+#AS7PATH :=$(subst $() $(),\ ,$(subst \,/,${ProgramFiles}/Atmel/Studio/7.0/))
+#avrprog  :='$(subst \,/,${ProgramFiles}/Atmel/Studio/7.0/atbackend/atprogram.exe)'
+AS7PATH :=$(subst \,/,c:/PROGRA~1/Atmel/Studio/7.0/)
+else
+#AS7PATH :=$(subst $() $(),\ ,$(subst \,/,${ProgramFiles(x86)}/Atmel/Studio/7.0/))
+#avrprog  :='$(subst \,/,${ProgramFiles(x86)}/Atmel/Studio/7.0/atbackend/atprogram.exe)'
+AS7PATH :=$(subst \,/,c:/PROGRA~2/Atmel/Studio/7.0/)
+endif
+endif
+avrprog := $(AS7PATH)atbackend/atprogram.exe
 endif
 
 COMMON_SRC = \
@@ -154,20 +177,27 @@ selflogs:
 	node scripts/dbgtool.js $(BUILD_PATH)/update-$(NAME).map
 
 dirs:
-	@echo "Building $(BOARD)"
+	$(info Building $(BOARD))
+	$(info BUILD_PATH $(BUILD_PATH))
+ifeq ($(OS), Windows_NT)
+	-@mkdir build
+	-@mkdir build\$(BOARD)
+#	-@mkdir $(BUILD_PATH)
+else
 	-@mkdir -p $(BUILD_PATH)
+endif
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
 		 -T$(LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/$(NAME).elf $@
-	@echo
+	$(info )
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
-	@echo
+	$(info )
 
 $(BUILD_PATH)/uf2_version.h: Makefile
-	echo "#define UF2_VERSION_BASE \"$(UF2_VERSION_BASE)\""> $@
+	$(file > $@,#define UF2_VERSION_BASE "$(UF2_VERSION_BASE)")
 
 $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
@@ -177,7 +207,7 @@ $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 	python3 lib/uf2/utils/uf2conv.py -b $(BOOTLOADER_SIZE) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
 
 $(BUILD_PATH)/%.o: src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
-	echo "$<"
+	$(info $<)
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $< -o $@
 
 $(BUILD_PATH)/%.o: $(BUILD_PATH)/%.c
@@ -187,7 +217,7 @@ $(BUILD_PATH)/selfdata.c: $(EXECUTABLE) scripts/gendata.py src/sketch.cpp
 	python3 scripts/gendata.py $(BOOTLOADER_SIZE) $(EXECUTABLE)
 
 clean:
-	rm -rf build
+	-@rm -rf build
 
 gdb:
 	arm-none-eabi-gdb $(BUILD_PATH)/$(NAME).elf
@@ -205,7 +235,7 @@ applet1: $(BUILD_PATH)/utils.asmdump
 	node scripts/genapplet.js $< resetIntoApp
 
 drop-board: all
-	@echo "*** Copy files for $(BOARD)"
+	$(info "*** Copy files for $(BOARD)"
 	mkdir -p build/drop
 	rm -rf build/drop/$(BOARD)
 	mkdir -p build/drop/$(BOARD)
@@ -227,6 +257,13 @@ all-boards:
 	for f in `cd boards; ls` ; do "$(MAKE)" BOARD=$$f drop-board || break -1; done
 
 drop: all-boards drop-pkg
+
+prog: $(BUILD_PATH)/$(NAME).elf
+#prog: build/$(BOARD)/$(BOARD).elf
+	$(avrprog) -t atmelice -i SWD -d AT$(CHIP_VARIANT) $(avrprog_addcmds) program -f "$^"
+
+prog-info: $(BOARD)
+	$(avrprog) -t atmelice -i SWD -d AT$(CHIP_VARIANT) info
 
 $(SUBMODULES):
 	git submodule update --init --recursive
