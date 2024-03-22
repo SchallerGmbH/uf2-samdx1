@@ -1,0 +1,42 @@
+https://forum.sparkfun.com/viewtopic.php?f=145&t=56457&p=228776&hilit=51THINGBOOT#p228776
+https://forum.sparkfun.com/viewtopic.php?f=145&p=228774
+https://github.com/sparkfun/SAMD51_Thing_Plus/commit/4b5b61ea15a099e99139af206e16e3b233d59143
+https://github.com/sparkfun/SAMD51_Thing_Plus/pull/2
+
+Add uf2-samdx1 board config and updated bootloader
+Since the board config used to build the original bootloader appears
+to have been lost, this commit includes a reconstructed board config.
+Importantly, this board config also corrects the microcontroller model
+to SAMD51J20A.
+
+VENDOR_NAME was copied from the SAMD51 MicroMod board config.
+INDEX_URL links to the SAMD51 Thing Plus product page.
+PRODUCT_NAME and BOARD_ID were copied from INFO_UF2.TXT in
+bootloader mode.
+VOLUME_LABEL, USB_VID, and USB_PID were copied from the device
+details in bootloader mode.
+
+LED_PIN was set using the SAMD51 Thing Plus graphical datasheet.
+
+BOOT_USART_* was configured for the pins broken out as D0 (RX) and
+D1 (TX) using SERCOM2 as shown in the SAMD51 Thing Plus graphical
+datasheet. This UART configuration is untested and may be incorrect.
+
+Adafruit maintains a more active fork of the uf2-samdx1 repo than the
+original Microsoft repo, so I chose to build a new bootloader from that.
+
+Instructions for building:
+1. Clone the uf2-samdx1 repo: https://github.com/adafruit/uf2-samdx1
+2. Check out the latest tag (e.g. v3.13.0).
+3. Copy the `sparkfun-samd51-thingplus` folder from this repo to the
+   `boards` folder in the uf2-samdx1 clone.
+4. Run the make command: `make BOARD=sparkfun-samd51-thingplus`
+5. Find the new bootloader and updater binaries in the
+   `build/sparkfun-samd51-thingplus` folder.
+
+Note: if the bootloader version number included in the filename contains
+a `-dirty` suffix, that means the bootloader repo contains untracked
+changes and, depending on the content of those changes, it may be
+impossible to reproduce that build in the future. Best practice is to
+only build from unmodified commits that are present in the upstream
+repo, and preferably tagged commits if possible.

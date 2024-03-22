@@ -1,0 +1,28 @@
+#ifndef BOARD_CONFIG_H
+#define BOARD_CONFIG_H
+
+#define VENDOR_NAME "Adafruit Industries"
+#define PRODUCT_NAME "Feather M0 Express"
+#define VOLUME_LABEL "FEATHERBOOT"
+#define INDEX_URL "http://adafru.it/3403"
+#define BOARD_ID "SAMD21G18A-Feather-M0-Express-v0"
+
+#define USB_VID 0x239A
+#define USB_PID 0x001B
+
+#define USE_UART 0
+
+#define LED_PIN PIN_PA17
+
+ #if USE_UART
+#define BOOT_USART_MODULE SERCOM3
+#define BOOT_USART_PAD_SETTINGS UART_RX_PAD1_TX_PAD0
+#define BOOT_USART_PAD3 PINMUX_UNUSED
+#define BOOT_USART_PAD2 PINMUX_UNUSED
+#define BOOT_USART_PAD1 PINMUX_PA23C_SERCOM3_PAD1
+#define BOOT_USART_PAD0 PINMUX_PA22C_SERCOM3_PAD0
+ #else
+ #define BOARD_NEOPIXEL_PIN PIN_PA06
+ #define BOARD_NEOPIXEL_COUNT 1
+ #endif
+#endif
