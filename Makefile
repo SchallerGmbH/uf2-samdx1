@@ -74,7 +74,7 @@ endif
 endif
 endif
 
-avrprog  :=
+avrprog :=
 ifeq ("$(OS)","Windows_NT")
 ifeq ("$(AS7PATH)","")
 ifeq ("$(ProgramW6432)","")
@@ -193,7 +193,11 @@ $(EXECUTABLE): $(OBJECTS)
 		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/$(NAME).elf $@
 	$(info )
+ifeq ("$(OS)","Windows_NT")
+	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf
+else	
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
+endif
 	$(info )
 
 $(BUILD_PATH)/uf2_version.h: Makefile
@@ -235,7 +239,7 @@ applet1: $(BUILD_PATH)/utils.asmdump
 	node scripts/genapplet.js $< resetIntoApp
 
 drop-board: all
-	$(info "*** Copy files for $(BOARD)"
+	$(info "*** Copy files for $(BOARD)")
 	mkdir -p build/drop
 	rm -rf build/drop/$(BOARD)
 	mkdir -p build/drop/$(BOARD)
