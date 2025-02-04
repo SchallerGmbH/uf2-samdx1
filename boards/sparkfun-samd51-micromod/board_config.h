@@ -10,7 +10,7 @@
 #define USB_VID 0x1B4F
 #define USB_PID 0x0020
 
-#define USE_UART 1
+//#define USE_UART 1
 
 #define LED_PIN PIN_PA23
 
